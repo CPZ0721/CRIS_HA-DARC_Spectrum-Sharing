@@ -60,16 +60,16 @@ Research_FINAL
 
 ## 資料夾功能說明與使用方法
 ### 1. 生成訓練集與驗證集用戶資料
-(a) 進入CreateData資料夾 - `cd CreateData`
-(b) 依據MDP生成主要用戶頻段使用情況 - `python Create_spectrum_MDP.py`
-(c\) 生成用戶位置資訊與主要用戶發射功率 - `python CreateUserTrajectory_MDP.py`
+(a) 進入CreateData資料夾 - `cd CreateData` <br>
+(b) 依據MDP生成主要用戶頻段使用情況 - `python Create_spectrum_MDP.py` <br>
+(c\) 生成用戶位置資訊與主要用戶發射功率 - `python CreateUserTrajectory_MDP.py` <br>
 
 執行完畢後就會得到包含頻譜資訊與用戶資訊的`.csv`檔
 
 ### 2. Generate_channel_data資料夾講解
-(a) 進入Generate_channel_data資料夾 - `cd Generate_channel_data`
-(b) 執行程式 - `python generate_evaluation.py --RIS_N=XX`
-(c\) 生成測試資料集`.npy`檔
+(a) 進入Generate_channel_data資料夾 - `cd Generate_channel_data` <br>
+(b) 執行程式 - `python generate_evaluation.py --RIS_N=XX` <br>
+(c\) 生成測試資料集`.npy`檔 <br>
 
 
 ### 3. CRIS_RL資料夾講解
@@ -107,7 +107,7 @@ python main.py --policy="DARC" --episdoe=30000 --actor-lr=5e-4 --critic-lr=5e-4 
 ```
 
 #### - 測驗集測試
-(a) `channel_data/`內放入由`Generate_channel_data/`生成的測試集
+(a) `channel_data/`內放入由`Generate_channel_data/`生成的測試集 <br>
 (b) 執行程式：指定RL演算法與反射元件數量
 ```python
 python evaluation.py --policy="DARC" --RIS_N=12
@@ -115,22 +115,22 @@ python evaluation.py --policy="DARC" --RIS_N=12
 就可得到測試集經由RL演算法的輸出結果`.csv`檔
 
 ### 4. CRIS_BB資料夾講解
-(a) 進入CRIS_BB資料夾 - `cd CRIS_BB/`
-(b) `channel_data/`內放入由`Generate_channel_data/`生成的測試集
-(c\) 執行程式 - `python BBSearch.py`
+(a) 進入CRIS_BB資料夾 - `cd CRIS_BB/` <br>
+(b) `channel_data/`內放入由`Generate_channel_data/`生成的測試集 <br>
+(c\) 執行程式 - `python BBSearch.py` <br>
 
 就可得到測試集經由BB演算法的輸出結果`.csv`檔
 
 ### 5. CRIS_best_random資料夾講解
-(a) 進入CRIS_best_random資料夾 - `cd CRIS_best_random/`
-(b) `channel_data/`內放入由`Generate_channel_data/`生成的測試集
-(c\) 執行程式 - `python Best_random.py`
+(a) 進入CRIS_best_random資料夾 - `cd CRIS_best_random/` <br>
+(b) `channel_data/`內放入由`Generate_channel_data/`生成的測試集 <br>
+(c\) 執行程式 - `python Best_random.py` <br>
 
 就可得到測試集經由Best random的輸出結果`.csv`檔
 
 ### 6. CRIS_SA資料夾講解
-(a) 進入CRIS_SA資料夾 - `cd CRIS_SA/`
-(b) `channel_data/`內放入由`Generate_channel_data/`生成的測試集
-(c\) 執行程式 - `python simulated_annealing.py`
+(a) 進入CRIS_SA資料夾 - `cd CRIS_SA/` <br>
+(b) `channel_data/`內放入由`Generate_channel_data/`生成的測試集 <br>
+(c\) 執行程式 - `python simulated_annealing.py` <br>
 
 就可得到測試集經由SA演算法的輸出結果`.csv`檔
