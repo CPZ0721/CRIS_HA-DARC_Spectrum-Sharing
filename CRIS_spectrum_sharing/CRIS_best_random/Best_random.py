@@ -1,6 +1,7 @@
 import numpy as np
 import math as mt
 import pandas as pd
+import argparse
 
 class Best_random_env():
 	def __init__(self, K, L, N, M, J, R_min_p, num_subchannel, pu_power, spectrum_usage , noise, G, H, F):
@@ -213,12 +214,16 @@ def load(state_array, N, M, J, count):
 
 
 def main():
+	parser = argparse.ArgumentParser()
+	parser.add_argument("--RIS_N", default=8, type=int, help='CRIS_reflective_element')
+	args = parser.parse_args()
+
 	# PTx antenna
 	M = 3
 	# STx antenna
 	J = 2
 	# RIS elements
-	N = 8
+	N = args.RIS_N
 	# number of primary user (PU)
 	K = 3
 	# number of secondary user (SU)

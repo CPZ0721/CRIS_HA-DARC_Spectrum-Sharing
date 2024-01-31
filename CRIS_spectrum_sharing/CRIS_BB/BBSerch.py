@@ -3,6 +3,7 @@ import bb_minlp_solve as bb
 import math as mt
 from pyomo.environ import *
 import pandas as pd
+import argparse
 
 def load_translate(state_array, N, M, J, count):
 	# recover the channel
@@ -37,13 +38,16 @@ def load_translate(state_array, N, M, J, count):
 	return G, F, signal_RIS_PU_1, signal_RIS_PU_2, signal_RIS_PU_3, signal_RIS_SU_1, signal_RIS_SU_2
 
 def main():
-	
+	parser = argparse.ArgumentParser()
+	parser.add_argument("--RIS_N", default=8, type=int, help='CRIS_reflective_element')
+	args = parser.parse_args()
+
 	# PTx antenna
 	M = 3
 	# STx antenna
 	J = 2
 	# RIS elements
-	N = 8
+	N = args.RIS_N
 	# number of primary user (PU)
 	K = 3
 	# number of secondary user (SU)
