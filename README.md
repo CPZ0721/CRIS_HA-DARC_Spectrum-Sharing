@@ -68,7 +68,7 @@ Research_FINAL
 
 ### 2. Generate_channel_data資料夾講解
 (a) 進入Generate_channel_data資料夾 - `cd Generate_channel_data` <br>
-(b) 執行程式 - `python generate_evaluation.py --RIS_N=XX` <br>
+(b) 執行程式 - `python generate_evaluation.py --RIS_N=8` <br>
 (c\) 生成測試資料集`.npy`檔 <br>
 
 
@@ -117,20 +117,20 @@ python evaluation.py --policy="DARC" --RIS_N=12
 ### 4. CRIS_BB資料夾講解
 (a) 進入CRIS_BB資料夾 - `cd CRIS_BB/` <br>
 (b) `channel_data/`內放入由`Generate_channel_data/`生成的測試集 <br>
-(c\) 執行程式 - `python BBSearch.py` <br>
+(c\) 執行程式 - `python BBSearch.py --RIS_N=8` <br>
 
 就可得到測試集經由BB演算法的輸出結果`.csv`檔
 
 ### 5. CRIS_best_random資料夾講解
 (a) 進入CRIS_best_random資料夾 - `cd CRIS_best_random/` <br>
 (b) `channel_data/`內放入由`Generate_channel_data/`生成的測試集 <br>
-(c\) 執行程式 - `python Best_random.py` <br>
+(c\) 執行程式 - `python Best_random.py --RIS_N=8` <br>
 
 就可得到測試集經由Best random的輸出結果`.csv`檔
 
 ### 6. CRIS_SA資料夾講解
 (a) 進入CRIS_SA資料夾 - `cd CRIS_SA/` <br>
 (b) `channel_data/`內放入由`Generate_channel_data/`生成的測試集 <br>
-(c\) 執行程式 - `python simulated_annealing.py` <br>
+(c\) 執行程式 - `python simulated_annealing.py --RIS_N=8` <br>
 
 就可得到測試集經由SA演算法的輸出結果`.csv`檔
