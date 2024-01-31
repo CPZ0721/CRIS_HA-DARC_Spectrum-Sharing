@@ -106,7 +106,7 @@ CRIS_RL
 python main.py --policy="DARC" --episdoe=30000 --actor-lr=5e-4 --critic-lr=5e-4 --RIS_N=12 --dir="result.txt"
 ```
 
-#### - 測驗集測試
+#### - 驗證集測試
 (a) `channel_data/`內放入由`Generate_channel_data/`生成的測試集 <br>
 (b) 執行程式：指定RL演算法與反射元件數量
 ```python
