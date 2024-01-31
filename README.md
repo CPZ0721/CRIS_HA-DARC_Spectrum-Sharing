@@ -103,7 +103,7 @@ CRIS_RL
 進入CRIS_RL資料夾 - `cd CRIS_RL/`
 <shell指令可自行設定參數>
 ```python
-python main.py --policy="DARC" --episdoe=30000 --actor-lr=5e-4 --critic-lr=5e-4 --RIS_N=12
+python main.py --policy="DARC" --episdoe=30000 --actor-lr=5e-4 --critic-lr=5e-4 --RIS_N=12 --dir="result.txt"
 ```
 
 #### - 測驗集測試
