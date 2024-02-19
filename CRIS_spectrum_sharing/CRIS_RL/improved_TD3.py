@@ -9,12 +9,15 @@ import torch.nn.functional as F
 # Implementation of Twin Delayed Deep Deterministic Policy Gradients (TD3)
 # Paper: https://arxiv.org/abs/1802.09477
 
+# Create Actor Model
 class Actor(nn.Module):
 	def __init__(self, state_dim, num_discrete_actions, num_continuous_actions, max_action, hidden_sizes=[400, 300]):
 		super(Actor, self).__init__()
-
+		# linear layer
 		self.l1 = nn.Linear(state_dim, hidden_sizes[0])
 		self.l2 = nn.Linear(hidden_sizes[0], hidden_sizes[1])
+
+		# parallel layers
 		self.l3_discrete = nn.Linear(hidden_sizes[1], num_discrete_actions)
 		self.l3_continuous = nn.Linear(hidden_sizes[1], num_continuous_actions)
 	
@@ -31,7 +34,7 @@ class Actor(nn.Module):
 
 		return  discrete_logit, continuous_actions
 
-
+# Create Critic layer
 class Critic(nn.Module):
 	def __init__(self, state_dim, num_discrete_actions, num_continuous_actions, hidden_sizes):
 		super(Critic, self).__init__()
@@ -50,11 +53,13 @@ class Critic(nn.Module):
 	def forward(self, state, discrete_action, continuous_action):
 
 		sa = torch.cat([state, discrete_action, continuous_action], 1)
+		# critic 1
 
 		q1 = F.relu(self.l1(sa))
 		#q1 = F.relu(self.l2(q1))
 		q1 = self.l3(q1)
 
+		# critic 2
 		q2 = F.relu(self.l4(sa))
 		#q2 = F.relu(self.l5(q2))
 		q2 = self.l6(q2)
@@ -90,15 +95,16 @@ class TD3(object):
 	):
 		self.device = device
 
+		# model and target model
 		self.actor = Actor(state_dim,  num_discrete_actions, num_continuous_actions,  max_action, hidden_sizes).to(self.device)
 		self.actor_target = copy.deepcopy(self.actor)
 		self.actor_optimizer = torch.optim.Adam(self.actor.parameters(), lr=actor_lr, weight_decay=1e-5)
 		
-
 		self.critic = Critic(state_dim,  num_discrete_actions, num_continuous_actions, hidden_sizes).to(self.device)
 		self.critic_target = copy.deepcopy(self.critic)
 		self.critic_optimizer = torch.optim.Adam(self.critic.parameters(), lr=critic_lr, weight_decay=1e-5)
 
+		# global parameter setting
 		self.min_action = min_action
 		self.max_action = max_action
 		self.discount = discount
@@ -117,7 +123,7 @@ class TD3(object):
 
 	def select_action(self, state):
 		state = torch.FloatTensor(state.reshape(1, -1)).to(self.device)
-
+		# output the discrete logit and continuous actions
 		with torch.no_grad():
 			discrete_logit, continuous_actions = self.actor(state)
 
@@ -155,6 +161,8 @@ class TD3(object):
 			next_continuous_actions = (next_continuous_actions + noise).clamp(self.min_action, self.max_action)
 			 
 			target_Q1, target_Q2 = self.critic_target(next_state, next_discrete_logit, next_continuous_actions)
+
+			# choose the minimum q value 
 			target_Q = torch.min(target_Q1, target_Q2)
 			target_Q = reward + not_done * self.discount * target_Q
 
@@ -166,6 +174,7 @@ class TD3(object):
 		critic_loss.backward()
 		self.critic_optimizer.step()
 
+		# soft update target networks
 		if self.total_it % self.policy_freq == 0:
 
 			actor_loss = -self.critic.Q1(state, self.actor(state)[0], self.actor(state)[1]).mean()
@@ -180,12 +189,14 @@ class TD3(object):
 			for param, target_param in zip(self.actor.parameters(), self.actor_target.parameters()):
 				target_param.data.copy_(self.tau * param.data + (1 - self.tau) * target_param.data)
 
+	# save models
 	def save(self, filename):
 		torch.save(self.critic.state_dict(), filename + "_critic.pt", _use_new_zipfile_serialization = False)
 		torch.save(self.critic_optimizer.state_dict(), filename + "_critic_optimizer.pt", _use_new_zipfile_serialization = False)
 		torch.save(self.actor.state_dict(), filename + "_actor.pt", _use_new_zipfile_serialization = False)
 		torch.save(self.actor_optimizer.state_dict(), filename + "_dis_actor_optimizer.pt", _use_new_zipfile_serialization = False)
 
+	# load models
 	def load(self, filename):
 		self.critic.load_state_dict(torch.load(filename + "_critic.pt"))
 		self.critic_optimizer.load_state_dict(torch.load(filename + "_critic_optimizer.pt"))

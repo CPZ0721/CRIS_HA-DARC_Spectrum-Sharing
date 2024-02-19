@@ -9,13 +9,16 @@ from torch.distributions import Categorical, RelaxedOneHotCategorical
 # Re-tuned version of Deep Deterministic Policy Gradients (DDPG)
 # Paper: https://arxiv.org/abs/1509.02971
 
-
+# Create Actor Model
 class Actor(nn.Module):
 	def __init__(self, state_dim, num_discrete_actions, num_continuous_actions, max_action, hidden_sizes=[400, 300]):
 		super(Actor, self).__init__()
 
+		# linear layer
 		self.l1 = nn.Linear(state_dim, hidden_sizes[0])
 		self.l2 = nn.Linear(hidden_sizes[0], hidden_sizes[1])
+
+		# parallel layers
 		self.l3_discrete = nn.Linear(hidden_sizes[1], num_discrete_actions)
 		self.l3_continuous = nn.Linear(hidden_sizes[1], num_continuous_actions)
 
@@ -30,7 +33,7 @@ class Actor(nn.Module):
 
 		return discrete_logit, continuous_actions
 
-
+# Create Critic Model
 class Critic(nn.Module):
 	def __init__(self, state_dim, num_discrete_actions, num_continuous_actions, hidden_sizes=[400, 300]):
 		super(Critic, self).__init__()
@@ -53,6 +56,8 @@ class DDPG(object):
 				hidden_sizes=[400, 300],
 				actor_lr = 3e-4,
 				critic_lr = 3e-4):
+		
+		# model and target model
 		self.device = device
 		self.actor = Actor(state_dim, num_discrete_actions, num_continuous_actions, max_action, hidden_sizes).to(self.device)
 		self.actor_target = copy.deepcopy(self.actor)
@@ -62,6 +67,7 @@ class DDPG(object):
 		self.critic_target = copy.deepcopy(self.critic)
 		self.critic_optimizer = torch.optim.Adam(self.critic.parameters(), lr=critic_lr, weight_decay = 1e-5)
 
+		# global parameter setting
 		self.discount = discount
 		self.num_discrete_actions = num_discrete_actions
 		self.num_continuous_actions = num_continuous_actions
@@ -70,6 +76,7 @@ class DDPG(object):
 		self.min_action = min_action
 		self.max_action = max_action
 
+	# choose action
 	def select_action(self, state):
 		state = torch.FloatTensor(state.reshape(1, -1)).to(self.device)
 		with torch.no_grad():
@@ -119,7 +126,7 @@ class DDPG(object):
 		for param, target_param in zip(self.actor.parameters(), self.actor_target.parameters()):
 			target_param.data.copy_(self.tau * param.data + (1 - self.tau) * target_param.data)
 
-
+	# save model
 	def save(self, filename):
 		torch.save(self.critic.state_dict(), filename + "_critic.pt", _use_new_zipfile_serialization = False)
 		torch.save(self.critic_optimizer.state_dict(), filename + "_critic_optimizer.pt", _use_new_zipfile_serialization = False)
@@ -127,7 +134,7 @@ class DDPG(object):
 		torch.save(self.actor.state_dict(), filename + "_actor.pt", _use_new_zipfile_serialization = False)
 		torch.save(self.actor_optimizer.state_dict(), filename + "_actor_optimizer.pt", _use_new_zipfile_serialization = False)
 
-
+	# load model
 	def load(self, filename):
 		self.critic.load_state_dict(torch.load(filename + "_critic.pt"))
 		self.critic_optimizer.load_state_dict(torch.load(filename + "_critic_optimizer.pt"))

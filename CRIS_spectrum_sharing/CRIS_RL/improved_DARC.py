@@ -6,21 +6,25 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+# Create Actor Model
 class Actor(nn.Module):
 	def __init__(self, state_dim, num_discrete_actions, num_continuous_actions, max_action, hidden_sizes=[400, 300]):
 		super(Actor, self).__init__()
 
+		# linear layer and layer norm
 		self.l1 = nn.Linear(state_dim, hidden_sizes[0])
 		self.ln1 = nn.LayerNorm(hidden_sizes[0])
 
 		self.l2 = nn.Linear(hidden_sizes[0], hidden_sizes[1])
 		self.ln2 = nn.LayerNorm(hidden_sizes[1])
 
+		# parallel layer with continous and discrete layers
 		self.l3_discrete = nn.Linear(hidden_sizes[1], num_discrete_actions)
 		self.l3_continuous = nn.Linear(hidden_sizes[1], num_continuous_actions)
 		self.ln3_d = nn.LayerNorm(num_discrete_actions)
 		self.ln3_c = nn.LayerNorm(num_continuous_actions)
 
+		# weight and bias setting
 		self.l1.weight.data.normal_(0, 0.1)
 		self.l1.bias.data.normal_(0, 0.1)
 		self.l2.weight.data.normal_(0, 0.1)
@@ -34,6 +38,8 @@ class Actor(nn.Module):
 
 
 	def forward(self, state):
+		
+		# activation function
 
 		a = F.relu(self.ln1(self.l1(state)))
 		# a = F.relu(self.ln2(self.l2(a)))
@@ -47,12 +53,16 @@ class Critic(nn.Module):
 	def __init__(self, state_dim, num_discrete_actions, num_continuous_actions, hidden_sizes=[400, 300]):
 		super(Critic, self).__init__()
 
+		# linear layer and layer norm layer
+
+		# first layer is concentrate layer
 		self.l1 = nn.Linear(state_dim + num_discrete_actions + num_continuous_actions, hidden_sizes[0])
 		self.ln1 = nn.LayerNorm(hidden_sizes[0])
 		self.l2 = nn.Linear(hidden_sizes[0], hidden_sizes[1])
 		self.ln2 = nn.LayerNorm(hidden_sizes[1])
 		self.l3 = nn.Linear(hidden_sizes[1], 1)
 
+		# weight and bias setting
 		self.l1.weight.data.normal_(0, 0.1)
 		self.l1.bias.data.normal_(0, 0.1)
 		self.l2.weight.data.normal_(0, 0.1)
@@ -62,6 +72,8 @@ class Critic(nn.Module):
 
 
 	def forward(self, state, discrete_action, continuous_action):
+
+		# activation function
 		if len(state.shape) == 3:
 			sa = torch.cat([state, discrete_action, continuous_action], 2)
 		else:
@@ -95,6 +107,7 @@ class DARC(object):
 	):
 		self.device = device
 
+		# actor/critic and target networks
 		self.actor1 = Actor(state_dim, num_discrete_actions, num_continuous_actions, max_action, hidden_sizes).to(self.device)
 		self.actor1_target = copy.deepcopy(self.actor1)
 		self.actor1_optimizer = torch.optim.Adam(self.actor1.parameters(), lr=actor_lr, weight_decay=1e-5)
@@ -112,6 +125,7 @@ class DARC(object):
 		self.critic2_optimizer = torch.optim.Adam(self.critic2.parameters(), lr=critic_lr, weight_decay=1e-5)
 		self.min_action = min_action
 
+		# global parameter setting
 		self.max_action = max_action
 		self.discount = discount
 		self.tau = tau
@@ -123,6 +137,7 @@ class DARC(object):
 		self.num_discrete_actions = num_discrete_actions
 		self.num_continuous_actions = num_continuous_actions
 
+	# choose the action which is output of actor models
 	def select_action(self, state):
 		state = torch.FloatTensor(state.reshape(1, -1)).to(self.device)
 
@@ -147,9 +162,10 @@ class DARC(object):
 		self.train_one_q_and_pi(replay_buffer, False, batch_size=batch_size)
 
 	def train_one_q_and_pi(self, replay_buffer, update_a1 = True, batch_size=100):
-
+		# smaple a batch size data from replay buffer
 		state, discrete_logit, continuous_action, next_state, reward, not_done = replay_buffer.sample(batch_size)
 
+		# back propogation
 		with torch.no_grad():
 			next_discrete_logit_1, next_continuous_actions_1 = self.actor1_target(next_state)
 			next_discrete_logit_2, next_continuous_actions_2 = self.actor2_target(next_state)
@@ -187,11 +203,12 @@ class DARC(object):
 
 			target_Q = reward + not_done * self.discount * next_Q
 
+		# update actor 1
 		if update_a1:
 			current_Q1 = self.critic1(state, discrete_logit, continuous_action)
 			current_Q2 = self.critic2(state, discrete_logit, continuous_action)
 
-			## critic regularization
+			# critic regularization
 			critic1_loss = F.mse_loss(current_Q1, target_Q) + self.regularization_weight * F.mse_loss(current_Q1, current_Q2)
 
 			self.critic1_optimizer.zero_grad()
@@ -204,17 +221,19 @@ class DARC(object):
 			actor1_loss.backward()
 			self.actor1_optimizer.step()
 
+			# copy parameters from model 1 to target 1
 			for param, target_param in zip(self.critic1.parameters(), self.critic1_target.parameters()):
 				target_param.data.copy_(self.tau * param.data + (1 - self.tau) * target_param.data)
 
 			for param, target_param in zip(self.actor1.parameters(), self.actor1_target.parameters()):
 				target_param.data.copy_(self.tau * param.data + (1 - self.tau) * target_param.data)
 
+		# update actor 2
 		else:
 			current_Q1 = self.critic1(state, discrete_logit, continuous_action)
 			current_Q2 = self.critic2(state, discrete_logit, continuous_action)
 
-			## critic regularization
+			# critic regularization
 			critic2_loss = F.mse_loss(current_Q2, target_Q) + self.regularization_weight * F.mse_loss(current_Q2, current_Q1)
 
 			self.critic2_optimizer.zero_grad()
@@ -227,6 +246,7 @@ class DARC(object):
 			actor2_loss.backward()
 			self.actor2_optimizer.step()
 
+			# copy parameters from model 2 to target 2
 			for param, target_param in zip(self.critic2.parameters(), self.critic2_target.parameters()):
 				target_param.data.copy_(self.tau * param.data + (1 - self.tau) * target_param.data)
 
