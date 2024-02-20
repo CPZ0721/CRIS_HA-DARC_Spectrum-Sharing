@@ -176,10 +176,10 @@ if __name__ == "__main__":
 	episode_timesteps = 0
 	episode_num = 0
 
-	for t in range(int(args.steps * args.steps)):
+	for t in range(int(args.steps * args.episode)):
 		episode_timesteps += 1
 		
-		if t < args.steps * args.start_steps:
+		if t < args.steps * args.start_episode:
 			# random
 			discrete_action = ((max_action - min_action) * np.random.random(dis_action_dim) + min_action).clip(-max_action, max_action)
 			continue_action = ((max_action - min_action) * np.random.random(con_action_dim) + min_action).clip(-max_action, max_action)
@@ -202,7 +202,7 @@ if __name__ == "__main__":
 		episode_reward += reward
 
 		# start training after the number of data is larger than bach size
-		if t >= (args.steps * args.start_steps):
+		if t >= (args.steps * args.start_episode):
 			# train agent
 			policy.train(replay_buffer, args.batch_size)
 		
@@ -217,7 +217,7 @@ if __name__ == "__main__":
 			episode_num += 1
 		
 		# every `args.eval_freq` execute evaluation
-		if (t + 1) % (args.steps * args.eval_freq) == 0:
+		if (t + 1) % (args.steps * args.eval_episode) == 0:
 			eval_return = eval_policy(policy, args.env, args.seed, eval_cnt=eval_cnt, args = args)
 			eval_cnt += 1
 			Rewards.append(eval_return)
